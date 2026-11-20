@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F1F5F9">
+<link rel="manifest" href="manifest.webmanifest">
+<title>DisasterShield Mobile</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root{--bg:#F1F5F9;--card:#FFFFFF;--line:#CBD5E1;--tx:#0F172A;--mut:#64748B;--red:#DC2626;--amb:#D97706;--grn:#059669;--blu:#2563EB;--field:#F8FAFC}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,"Segoe UI",Roboto,sans-serif;min-height:100vh;padding-bottom:70px}
+  header{position:sticky;top:0;z-index:1000;background:#FFFFFFf2;border-bottom:1px solid var(--line);padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
+  h1{font-size:14px;letter-spacing:.12em;margin:0}h1 small{display:block;color:var(--mut);letter-spacing:0;font-weight:400;font-size:10px}
+  .chip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;border:1px solid}
+  .on{color:#047857;border-color:var(--grn);background:#D1FAE5}.off{color:#B45309;border-color:var(--amb);background:#FEF3C7}
+  main{padding:12px;display:flex;flex-direction:column;gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 1px 2px #0F172A10}
+  .card h2{font-size:12px;color:var(--mut);margin:0 0 8px;letter-spacing:.06em;text-transform:uppercase}
+  .map{height:210px;border-radius:10px;overflow:hidden;margin-top:8px}
+  button{font:inherit;cursor:pointer}
+  .sos{width:100%;padding:16px;border:0;border-radius:14px;background:var(--red);color:#fff;font-size:18px;font-weight:800;letter-spacing:.04em;box-shadow:0 0 0 5px #DC262622}
+  .sos:active{transform:scale(.98)}
+  .seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.seg.three{grid-template-columns:repeat(3,1fr)}
+  .opt{padding:9px 4px;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--tx);text-align:center;font-size:13px}
+  .opt.sel{background:var(--blu);border-color:var(--blu);color:#fff}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  label.t{display:flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid var(--line);border-radius:99px;background:var(--field);font-size:13px}
+  input[type=number],input[type=tel],select,input[type=text],textarea{background:var(--field);border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:9px;font:inherit;width:100%}
+  textarea{resize:vertical;min-height:70px}
+  input:focus,select:focus,textarea:focus{outline:2px solid #93C5FD;border-color:var(--blu)}
+  .row{display:flex;gap:8px;align-items:center}.row>*{flex:1}
+  .fld{margin-bottom:10px}.fld>.mut{margin-bottom:3px;font-weight:600}.req{color:var(--red)}
+  .bad{border-color:var(--red)!important;background:#FEF2F2!important}
+  .banner{border:2px solid var(--red);background:#FEF2F2;border-radius:14px;padding:12px}
+  .banner b.h{color:#B91C1C}
+  .btn{padding:11px;border-radius:10px;border:0;background:var(--grn);color:#fff;font-weight:700;width:100%}
+  .btn.blu{background:var(--blu);color:#fff}.btn.amb{background:var(--amb);color:#fff}.btn.gry{background:#E2E8F0;color:var(--tx)}.btn.red{background:var(--red);color:#fff}
+  .btn.sm{padding:8px 10px;font-size:13px;width:auto}
+  .badge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;border:1px solid}
+  .r{color:#B91C1C;border-color:var(--red);background:#FEE2E2}.a{color:#B45309;border-color:var(--amb);background:#FEF3C7}.g{color:#047857;border-color:var(--grn);background:#D1FAE5}.b{color:#1D4ED8;border-color:var(--blu);background:#DBEAFE}
+  ol{padding-left:18px;margin:6px 0;font-size:13px;color:#334155}
+  nav.bottom{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:1fr 1fr;background:#fff;border-top:1px solid var(--line)}
+  nav.bottom button{padding:14px;background:none;border:0;color:var(--mut);font-weight:700}nav.bottom button.sel{color:var(--blu);border-top:2px solid var(--blu)}
+  .hidden{display:none!important}.mut{color:var(--mut);font-size:12px}
+  #toast{position:fixed;left:12px;right:12px;bottom:80px;background:#0F172A;color:#fff;padding:10px 12px;border-radius:10px;z-index:3000;display:none}
+  .req-card{border:1px solid var(--line);border-left:5px solid var(--amb);border-radius:12px;padding:10px;margin-top:10px;background:#fff}
+  .req-card.crit{border-left-color:var(--red)}
+  .kv{display:grid;grid-template-columns:84px 1fr;gap:2px 8px;font-size:13px;margin:8px 0}.kv span:nth-child(odd){color:var(--mut)}
+  .acts{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:8px}
+  a.lnk{color:var(--blu);font-weight:600;text-decoration:none}
+  .okbox{border:1px solid var(--grn);background:#ECFDF5;color:#065F46;border-radius:10px;padding:10px;margin-top:10px;font-size:13px}
+  .leaflet-container{background:#E2E8F0}
+  #respBody.locked{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <h1>DISASTER-SHIELD AI<small id="sub">Ward 14 – Adyar Basin</small></h1>
+  <div style="display:flex;gap:6px;align-items:center">
+    <span id="ntfSlot"></span>
+    <a id="portalLink" class="chip on" href="/" title="Access screen / switch user" style="text-decoration:none">&#8962; Access</a>
+    <span id="queueChip" class="chip off hidden"></span>
+    <span id="net" class="chip on">ONLINE</span>
+  </div>
+</header>
+
+<!-- ================= CITIZEN ================= -->
+<main id="citizen">
+  <div id="alertBox" class="hidden banner">
+    <div class="row" style="justify-content:space-between"><b class="h">⚠ GEO-ALERT • CAP v1.2</b>
+      <select id="alertLang" style="max-width:130px"><option value="en">English</option><option value="ta">தமிழ்</option><option value="hi">हिन्दी</option></select></div>
+    <div id="alertHead" style="font-weight:700;margin:6px 0"></div>
+    <div id="alertBody" style="font-size:14px"></div>
+    <div class="mut" id="alertMeta" style="margin:6px 0"></div>
+    <button class="btn" id="navShelter">Navigate to Nearest Safe Shelter</button>
+  </div>
+
+  <div class="card" id="reqCard">
+    <h2>Request help</h2>
+    <div class="fld"><div class="mut">Type of request <span class="req">*</span></div>
+      <select id="rtype">
+        <option>Flood Rescue</option><option>Medical Emergency</option><option>Food &amp; Drinking Water</option>
+        <option>Shelter / Evacuation</option><option>Trapped / Stranded</option><option>Other</option>
+      </select></div>
+    <div class="row fld"><div><div class="mut">Your name <span class="req">*</span></div><input id="cname" type="text" autocomplete="name" placeholder="Full name"></div>
+      <div><div class="mut">Phone number <span class="req">*</span></div><input id="cphone" type="tel" inputmode="numeric" maxlength="15" autocomplete="tel" placeholder="10-digit mobile"></div></div>
+    <div class="fld"><div class="mut">Address / landmark <span class="req">*</span></div>
+      <input id="caddr" type="text" autocomplete="street-address" placeholder="House no., street, nearby landmark">
+      <div class="row" style="margin-top:6px"><button class="btn sm blu" id="useLoc" type="button">&#128205; Use my live location</button></div>
+      <div class="mut" id="gps" style="margin-top:4px">GPS: locating...</div></div>
+    <div class="fld"><div class="mut">Describe your situation <span class="req">*</span></div>
+      <textarea id="cdesc" placeholder="e.g. Water inside the house up to the knee, elderly mother cannot walk, need a boat."></textarea></div>
+    <div class="fld"><div class="mut">Assign to rescue team / officer <span class="req">*</span></div><select id="officerSel"></select></div>
+    <div class="mut" style="margin-bottom:6px;font-weight:600">Water level around you</div>
+    <div class="seg fld" id="depthSeg">
+      <button class="opt" data-d="0.15" type="button">Ankle</button><button class="opt sel" data-d="0.45" type="button">Knee</button>
+      <button class="opt" data-d="0.9" type="button">Waist</button><button class="opt" data-d="1.3" type="button">Chest</button>
+    </div>
+    <div class="row fld"><div><div class="mut" style="font-weight:600">People needing help</div><input id="hh" type="number" min="1" max="50" value="1"></div></div>
+    <div class="tags fld" id="vuln">
+      <label class="t"><input type="checkbox" value="Elderly / Mobility Aid"> Elderly</label>
+      <label class="t"><input type="checkbox" value="Medical / Oxygen Need"> Medical/Oxygen</label>
+      <label class="t"><input type="checkbox" value="Family with Infants"> Infants</label>
+    </div>
+    <button class="sos" id="sosBtn">SUBMIT HELP REQUEST</button>
+    <div class="mut" id="sosStatus" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card" id="myCard"><h2>My requests</h2><div id="myReqs" class="mut">No requests yet.</div></div>
+
+  <div class="card" id="placeCard">
+    <h2>Check conditions at any place</h2>
+    <form id="placeForm" class="row" autocomplete="off"><input id="placeQ" type="text" placeholder="Search an area, city or landmark"><button class="btn sm blu" type="submit" style="flex:0 0 auto">Search</button></form>
+    <div id="placeList" style="margin-top:6px"></div>
+    <div id="placePanel" style="margin-top:10px"></div>
+    <button class="btn gry hidden" id="useThis" type="button" style="margin-top:10px">Use this place for my help request</button>
+  </div>
+
+  <div class="card"><h2>Ward 14 map • shelters (cached offline)</h2><div id="cmap" class="map"></div>
+    <div class="mut" id="shelterList" style="margin-top:8px"></div></div>
+  <button class="btn gry" id="simOff">Simulate loss of cellular data</button>
+</main>
+
+<!-- ================= RESPONDER ================= -->
+<main id="responder" class="hidden">
+  <div class="card hidden" id="loginCard">
+    <h2>Rescue officer sign-in</h2>
+    <form id="loginForm" autocomplete="on">
+      <div class="fld"><input id="lgUser" type="text" placeholder="Username" autocomplete="username" required></div>
+      <div class="fld"><input id="lgPass" type="password" placeholder="Password" autocomplete="current-password" required></div>
+      <div id="lgErr" class="mut" style="color:#B91C1C;margin-bottom:8px"></div>
+      <button class="btn blu" type="submit">Sign in</button>
+    </form>
+    <div class="mut" style="margin-top:8px">Only authorised rescue teams and the control room can open this screen. Citizens: use the <b>Request Help</b> tab.</div>
+  </div>
+  <div id="respBody" style="display:flex;flex-direction:column;gap:12px">
+  <div class="card">
+    <div class="row"><div><div class="mut">Rescue team / officer</div><select id="unitSel"></select></div><div><div class="mut">Live GPS</div><div id="rgps" class="mut">-</div></div></div>
+  </div>
+  <div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Assigned requests</h2><button class="btn sm gry" id="refreshReq" type="button">&#8635; Refresh</button></div>
+    <div id="inbox" class="mut" style="margin-top:6px">Loading...</div></div>
+  <div class="card" id="missionCard"><h2>Safe route for active mission</h2><div id="mission" class="mut">Loading...</div></div>
+  <div class="card"><h2>Report new hazard</h2>
+    <div class="row"><select id="hzStatus"><option>SUBMERGED</option><option>BLOCKED</option><option>SAFE</option></select><input id="hzDepth" type="number" step="0.1" value="0.6"></div>
+    <div class="mut" style="margin:6px 0">Flags the nearest road to your GPS position. Control Room map and routing update live.</div>
+    <button class="btn amb" id="hzBtn">Flag flooded road here</button></div>
+  <div class="card"><h2>Mission map</h2><div id="rmap" class="map" style="height:260px"></div></div>
+  <button class="btn gry" id="simOff2">Simulate loss of cellular data</button>
+  <button class="btn gry hidden" id="signOut2" type="button"></button>
+  </div>
+</main>
+
+<nav class="bottom" id="botnav"><button data-m="citizen" class="sel">Request Help</button><button data-m="responder">Rescue Officer</button></nav>
+<div id="toast"></div>
+<script src="notify.js"></script>
+<script src="livedata.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

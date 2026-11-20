@@ -1,0 +1,5 @@
+# never commit credentials
+backend/users.json
+.env
+__pycache__/
+*.pyc

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DisasterShield AI – Control Room</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  body{background:#F1F5F9;color:#0F172A;font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif}
+  .card{background:#FFFFFF;border:1px solid #CBD5E1;border-radius:.75rem;box-shadow:0 1px 2px #0F172A10}
+  .leaflet-container{background:#E2E8F0}
+  .pill{border:1px solid #CBD5E1;border-radius:9999px;padding:.25rem .75rem;font-size:.75rem;cursor:pointer;color:#334155;background:#FFFFFF}
+  .pill:hover{background:#F1F5F9}
+  .pill.on{background:#2563EB;border-color:#2563EB;color:#fff}
+  .badge{font-size:.65rem;font-weight:700;padding:.1rem .5rem;border-radius:.35rem;letter-spacing:.04em}
+  .b-red{background:#FEE2E2;color:#B91C1C;border:1px solid #EF4444}
+  .b-amb{background:#FEF3C7;color:#B45309;border:1px solid #F59E0B}
+  .b-grn{background:#D1FAE5;color:#047857;border:1px solid #10B981}
+  .b-blu{background:#DBEAFE;color:#1D4ED8;border:1px solid #3B82F6}
+  .beacon{width:30px;height:30px;border-radius:50%;color:#fff;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;position:relative}
+  .beacon::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid currentColor;animation:pulse 1.6s infinite;opacity:.8}
+  @keyframes pulse{0%{transform:scale(.7);opacity:.9}100%{transform:scale(1.7);opacity:0}}
+  .mk{display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;border-radius:6px;width:24px;height:24px;border:2px solid #fff;font-size:13px}
+  .lbl{background:#FFFFFFdd;color:#0F172A;border:1px solid #CBD5E1;border-radius:4px;padding:1px 5px;font-size:10px;white-space:nowrap}
+  .sector-lbl{color:#475569;font-size:11px;font-weight:600;text-shadow:0 0 3px #fff;white-space:nowrap;pointer-events:none}
+  textarea,input,select{background:#F8FAFC;border:1px solid #CBD5E1;border-radius:.5rem;color:#0F172A}
+  .scroll::-webkit-scrollbar{width:6px}.scroll::-webkit-scrollbar-thumb{background:#94A3B8;border-radius:3px}
+  iframe{border:0}
+  /* light-theme remap of the Tailwind utility colours used in the markup */
+  .text-white{color:#0F172A!important}.text-sky-400{color:#0284C7!important}.text-sky-300{color:#0369A1!important}
+  .text-slate-300{color:#334155!important}.text-slate-400{color:#64748B!important}.text-slate-500{color:#64748B!important}
+  .text-red-400,.text-red-300{color:#DC2626!important}.text-emerald-400,.text-emerald-300{color:#059669!important}.text-amber-400{color:#B45309!important}
+  .border-slate-700,.border-slate-600{border-color:#CBD5E1!important}
+  .bg-slate-500{background:#94A3B8!important}
+  .req-box{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:.5rem;padding:.4rem .55rem;margin-top:.5rem;font-size:.75rem;line-height:1.35}
+  .req-box b{color:#334155}
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- A. Header: role & mode switcher -->
+<header class="sticky top-0 z-[2000] bg-white/95 backdrop-blur border-b border-slate-700">
+  <div class="max-w-[1500px] mx-auto px-4 py-2 flex flex-wrap items-center gap-x-6 gap-y-2">
+    <div>
+      <div class="text-lg font-extrabold tracking-widest text-white">DISASTER-SHIELD <span class="text-sky-400">AI</span></div>
+      <div class="text-[11px] text-slate-400">Urban Flood Pilot • Ward 14 – Adyar Basin</div>
+    </div>
+    <nav class="flex gap-2 flex-1 flex-wrap" id="tabs">
+      <button data-tab="control" class="pill on">Control Room (GIS &amp; Triage)</button>
+      <button data-tab="responder" class="pill">Rescue Officer (Mobile)</button>
+      <button data-tab="citizen" class="pill">Citizen Help Request (Mobile)</button>
+    </nav>
+    <div class="flex items-center gap-3 text-xs">
+      <span id="sysPill" class="badge b-amb text-[11px]">Advisory Mode: Awaiting Human Sign-Off</span>
+      <span id="wsDot" class="inline-block w-2 h-2 rounded-full bg-slate-500" title="live-ops socket"></span>
+      <span id="ntfSlot"></span>
+      <button id="signOut" class="pill hidden" type="button"></button>
+      <span id="clock" class="font-mono text-slate-300"></span>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile views embedded -->
+<section id="view-responder" class="hidden max-w-[1500px] mx-auto p-4">
+  <div class="flex justify-center"><iframe id="ifr-responder" class="rounded-[2rem] border-4 border-slate-300 bg-white" style="width:390px;height:780px"></iframe></div>
+</section>
+<section id="view-citizen" class="hidden max-w-[1500px] mx-auto p-4">
+  <div class="flex justify-center"><iframe id="ifr-citizen" class="rounded-[2rem] border-4 border-slate-300 bg-white" style="width:390px;height:780px"></iframe></div>
+</section>
+
+<main id="view-control" class="max-w-[1500px] mx-auto p-4 space-y-4">
+
+  <!-- B1. KPI strip -->
+  <div id="kpiMode" class="flex flex-wrap items-center gap-2 text-xs"></div>
+  <section class="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4" id="kpis">
+    <div class="card p-4" id="kc1"><div class="text-xs text-slate-400">IMD RAINFALL RATE</div><div class="text-3xl font-bold mt-1"><span id="k-rain">–</span> <span class="text-sm font-normal text-slate-400">mm/hr</span></div><div id="k-rain-d" class="text-xs mt-1"></div></div>
+    <div class="card p-4" id="kc2"><div class="text-xs text-slate-400">CWC RIVER GAUGE (ADYAR)</div><div class="text-3xl font-bold mt-1"><span id="k-river">–</span> <span class="text-sm font-normal text-slate-400">/ <span id="k-danger">–</span> m Danger</span></div><div id="k-rise" class="text-xs mt-1"></div></div>
+    <div class="card p-4" id="kc3"><div class="text-xs text-slate-400">AI COMPOSITE FLOOD RISK</div><div class="text-3xl font-bold mt-1"><span id="k-risk">–</span><span class="text-sm font-normal text-slate-400"> / 100</span> <span id="k-sev" class="badge b-red align-middle">–</span></div><div id="k-conf" class="text-xs mt-1 text-slate-400"></div></div>
+    <div class="card p-4" id="kc4"><div class="text-xs text-slate-400">ACTIVE REQUESTS &amp; SHELTERS</div><div class="text-xl font-bold mt-1"><span id="k-sos" class="text-red-400">–</span> Open Requests • <span id="k-sh" class="text-emerald-400">–</span> Shelters Ready</div><div class="text-xs mt-1 text-slate-300"><b id="k-beds">–</b> Shelter Beds Free</div></div>
+  </section>
+
+  <section id="liveCard" class="card p-4 hidden"></section>
+
+  <div class="grid gap-4 xl:grid-cols-3">
+    <!-- B2. GIS -->
+    <section class="card p-3 xl:col-span-2">
+      <div class="relative mb-3" id="locBox">
+        <form id="locForm" class="flex gap-2" autocomplete="off">
+          <input id="locQ" class="flex-1 px-3 py-2 text-sm" placeholder="Search any place: city, area, landmark, or lat,lon (e.g. 13.05, 80.25)" aria-label="Search a location">
+          <button class="pill on" type="submit" id="locGo">Search</button>
+          <button class="pill hidden" type="button" id="locReset" title="Back to the Ward 14 pilot">&#8962; Ward 14</button>
+        </form>
+        <div id="locList" class="hidden absolute z-[1500] left-0 right-0 mt-1 card text-sm overflow-hidden"></div>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 mb-2">
+        <span class="text-sm font-semibold mr-2">Operating Picture <span class="text-slate-500 font-normal text-xs">PostGIS • EPSG:4326</span></span>
+        <button class="pill on" data-layer="heat">Flood Heatmap</button>
+        <button class="pill on" data-layer="shelters">Safe Shelters</button>
+        <button class="pill on" data-layer="roads">Blocked Roads</button>
+        <button class="pill on" data-layer="sos">Live SOS Pins</button>
+      </div>
+      <div class="relative">
+        <div id="map" style="height:560px" class="rounded-lg overflow-hidden"></div>
+        <div id="inspect" class="hidden absolute right-3 top-3 z-[1000] w-72 card p-3 text-xs shadow-xl bg-white/95">
+          <div class="flex justify-between items-start"><div id="insp-title" class="font-bold text-sm"></div><button id="insp-x" class="text-slate-400">✕</button></div>
+          <div id="insp-body" class="mt-1 text-slate-300 leading-relaxed"></div>
+          <div id="insp-crs" class="mt-2 font-mono text-[10px] text-sky-300"></div>
+        </div>
+        <div class="absolute left-3 bottom-3 z-[1000] card p-2 text-[10px] space-y-1 bg-white/90">
+          <div><span class="inline-block w-3 h-3 align-middle rounded-sm" style="background:#EF4444"></span> Critical &nbsp;<span class="inline-block w-3 h-3 align-middle rounded-sm" style="background:#F59E0B"></span> High/Submerged &nbsp;<span class="inline-block w-3 h-3 align-middle rounded-sm" style="background:#10B981"></span> Safe corridor</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- B3. CAP -->
+    <section class="card p-4 flex flex-col gap-3" id="capCard">
+      <div class="flex items-center justify-between">
+        <h2 class="font-semibold">AI Early Warning • CAP v1.2</h2>
+        <button id="surgeBtn" class="pill">⚡ Surge Test</button>
+      </div>
+      <div id="capTrigger" class="text-xs rounded-lg p-3 b-amb leading-relaxed">Loading AI recommendation…</div>
+      <div class="flex gap-2" id="langTabs">
+        <button data-lang="en" class="pill on">English</button>
+        <button data-lang="ta" class="pill">தமிழ் (Tamil)</button>
+        <button data-lang="hi" class="pill">हिन्दी (Hindi)</button>
+      </div>
+      <textarea id="capText" rows="9" class="p-2 text-sm leading-relaxed" placeholder="No pending alert."></textarea>
+      <div class="text-[11px] text-slate-400">Editable. Channels on approval: Push • SMS • IVR. Alert id: <span id="capId" class="font-mono">–</span></div>
+      <button id="approveBtn" class="rounded-lg bg-red-600 hover:bg-red-500 disabled:bg-slate-600 disabled:text-slate-400 font-semibold py-2.5 text-sm" disabled>Approve &amp; Broadcast Geo-Alert (Syncs Citizen App)</button>
+      <div id="capResult" class="text-xs"></div>
+    </section>
+  </div>
+
+  <!-- B4. Triage -->
+  <section>
+    <div class="flex items-baseline gap-3 mb-2"><h2 class="font-semibold">Citizen Help Requests &amp; Triage Queue</h2><span class="text-xs text-slate-400">live from the Citizen app, ranked by AI vulnerability &amp; water-depth risk score</span></div>
+    <div id="queue" class="grid gap-3 md:grid-cols-2 xl:grid-cols-3"></div>
+  </section>
+
+  <!-- B5. Audit -->
+  <section class="card p-4">
+    <div class="flex flex-wrap items-center gap-3 mb-3">
+      <h2 class="font-semibold">Governance, Explainability &amp; Immutable Audit Log</h2>
+      <span class="badge b-grn">District Duty Officer (Verified)</span>
+      <span class="badge b-blu">RBAC: DUTY_OFFICER</span>
+      <div class="ml-auto flex gap-2">
+        <input id="auditQ" placeholder="Search log…" class="px-3 py-1 text-sm">
+        <select id="auditT" class="px-2 py-1 text-sm"><option value="">All types</option><option>AI INFERENCE</option><option>VERIFIED</option><option>HUMAN APPROVED</option></select>
+      </div>
+    </div>
+    <div class="overflow-x-auto scroll max-h-80 overflow-y-auto">
+      <table class="w-full text-xs">
+        <thead class="text-slate-400 text-left sticky top-0 bg-white"><tr><th class="py-2 pr-3">TIMESTAMP</th><th class="pr-3">ACTOR / MODULE</th><th class="pr-3">ACTION &amp; DECISION RATIONALE</th><th>VERIFICATION</th></tr></thead>
+        <tbody id="auditBody"></tbody>
+      </table>
+    </div>
+    <div class="text-[10px] text-slate-500 mt-2">Append-only, SHA-256 hash-chained. Latest head: <span id="auditHash" class="font-mono"></span></div>
+  </section>
+</main>
+
+<div id="loginWall" class="hidden fixed inset-0 z-[6000] flex items-center justify-center p-4" style="background:#F1F5F9">
+  <form id="loginForm" class="card p-6 w-full max-w-sm space-y-3" autocomplete="on">
+    <div class="text-lg font-extrabold tracking-widest">DISASTER-SHIELD <span class="text-sky-400">AI</span></div>
+    <div class="text-xs text-slate-400">Control Room - authorised staff only</div>
+    <input id="lgUser" class="w-full px-3 py-2 text-sm" placeholder="Username" autocomplete="username" required>
+    <input id="lgPass" type="password" class="w-full px-3 py-2 text-sm" placeholder="Password" autocomplete="current-password" required>
+    <div id="lgErr" class="text-xs" style="color:#B91C1C"></div>
+    <button class="w-full rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 text-sm" type="submit">Sign in</button>
+    <div class="text-[11px] text-slate-400">Citizens do not need to sign in: use the citizen help-request app at <a class="underline text-sky-400" href="/mobile/">/mobile/</a>.</div>
+  </form>
+</div>
+<div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[3000] hidden card px-4 py-2 text-sm shadow-xl"></div>
+<script src="notify.js"></script>
+<script src="livedata.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+backend/users.json
+deploy
+Dockerfile
+docker-compose.yml
+*.md
+**/__pycache__

@@ -1,0 +1,9 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+# optional – enables the XGBoost confidence model (falls back to a calibrated logistic otherwise)
+# xgboost>=2.0
+# numpy>=1.26
+# optional – only needed when switching the store to PostGIS (see db/)
+# psycopg[binary]>=3.1
+# redis>=5.0

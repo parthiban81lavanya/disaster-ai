@@ -1,0 +1,6 @@
+**/__pycache__
+**/*.pyc
+.git
+backend/users.json
+*.md
+deploy
