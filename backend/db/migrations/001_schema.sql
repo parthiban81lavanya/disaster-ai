@@ -1,4 +1,4 @@
--- alertNow :: schema (PostgreSQL 15+ / PostGIS 3). All geometries EPSG:4326.
+-- Alert-Now.in :: schema (PostgreSQL 15+ / PostGIS 3). All geometries EPSG:4326.
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 

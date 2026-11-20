@@ -1,4 +1,4 @@
-# alertNow - one container serves the API, the Control Room and the mobile PWA.
+# Alert-Now.in - one container serves the API, the Control Room and the mobile PWA.
 FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 WORKDIR /srv

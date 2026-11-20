@@ -1,4 +1,4 @@
-# How to Run alertNow and See the Results
+# How to Run Alert-Now.in and See the Results
 
 ## 1. Requirements
 - Python 3.10+ (check with `python --version`)

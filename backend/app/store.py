@@ -1,4 +1,4 @@
-"""alertNow - persistence for serverless hosting (Vercel).
+"""Alert-Now.in - persistence for serverless hosting (Vercel).
 
 Serverless functions keep no memory between calls, so every request:
   1. loads the working data from Redis (one pipelined HTTP call),
