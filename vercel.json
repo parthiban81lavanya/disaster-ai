@@ -1,13 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": null,
-  "outputDirectory": "public",
   "regions": ["bom1"],
-  "functions": {
-    "api/index.py": { "includeFiles": "backend/app/**", "maxDuration": 30 }
+  "services": {
+    "web": { "root": "public" },
+    "api": {
+      "root": "backend",
+      "framework": "fastapi",
+      "entrypoint": "app/main.py"
+    }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index" },
-    { "source": "/healthz", "destination": "/api/index" }
+    { "source": "/api/(.*)", "destination": { "service": "api" } },
+    { "source": "/healthz", "destination": { "service": "api" } },
+    { "source": "/(.*)", "destination": { "service": "web" } }
   ]
 }
