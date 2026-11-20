@@ -1,4 +1,4 @@
-"""DisasterShield AI - authentication and role-based access control (stdlib only).
+"""alertNow - authentication and role-based access control (stdlib only).
 
 Modes (env AUTH_MODE):
   off (default)  local demo: everyone acts as Control Room, no login.
@@ -94,7 +94,7 @@ def totp_ok(secret: str, code: str) -> Optional[int]:
 
 
 def otpauth_uri(username: str, secret: str) -> str:
-    return f"otpauth://totp/DisasterShield%20AI:{username}?secret={secret}&issuer=DisasterShield%20AI&digits=6&period=30"
+    return f"otpauth://totp/alertNow:{username}?secret={secret}&issuer=alertNow&digits=6&period=30"
 
 
 # ---------------------------------------------------------------- tokens (HMAC-signed, expiring)

@@ -1,4 +1,4 @@
-/* DisasterShield AI - notification centre: pop-up cards (hover to pause / keep open), optional voice (speech synthesis) and alert sound.
+/* alertNow - notification centre: pop-up cards (hover to pause / keep open), optional voice (speech synthesis) and alert sound.
    Shared by the Control Room and the mobile app (identical copy in /mobile). Usage: Notifier.mount(el); Notifier.push({title, body, level, speak}) */
 (function () {
   const KEY = "shield_voice";

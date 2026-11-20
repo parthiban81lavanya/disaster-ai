@@ -1,4 +1,4 @@
-/* DisasterShield AI – mobile (Citizen + Field Responder). Offline-first PWA.
+/* alertNow – mobile (Citizen + Field Responder). Offline-first PWA.
    Local persistence: localStorage action queue + cached layers (the native Expo/SQLite version uses the same queue contract). */
 const API = "/api/v1", $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);

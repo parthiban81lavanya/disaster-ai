@@ -1,4 +1,4 @@
-# DisasterShield AI – Ward 14, Adyar Basin (Chennai)
+# alertNow – Ward 14, Adyar Basin (Chennai)
 
 ```
 backend/        FastAPI API + AI (risk scoring, triage) + CAP v1.2 + WebSocket; serves both UIs

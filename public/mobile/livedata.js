@@ -1,4 +1,4 @@
-/* DisasterShield AI - live conditions for ANY place (shared by the Control Room and the mobile app; identical copy in /mobile).
+/* alertNow - live conditions for ANY place (shared by the Control Room and the mobile app; identical copy in /mobile).
    Data: Open-Meteo (free, no API key): geocoding, weather/rain forecast and the GloFAS river-discharge flood API.
    Open-Meteo's free tier is for non-commercial use; a commercial deployment needs their paid plan or another provider.
    The risk number is an INDICATIVE rule of thumb (see riskOf), not an official IMD / CWC / NDMA warning. */

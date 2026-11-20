@@ -43,7 +43,7 @@ def build_cap_json(identifier, lang, body, sender="ward14.duty@gcc.tn.gov.in", s
                 "language": LANGS[lang], "category": ["Met", "Rescue"], "event": "Urban Flood",
                 "responseType": ["Evacuate", "Shelter"], "urgency": "Immediate", "severity": severity,
                 "certainty": "Likely", "expires": (now + timedelta(hours=6)).isoformat(),
-                "senderName": "DisasterShield AI – Ward 14 Duty Officer", "headline": HEADLINE[lang],
+                "senderName": "alertNow – Ward 14 Duty Officer", "headline": HEADLINE[lang],
                 "description": body, "instruction": body,
                 "area": {"areaDesc": "Ward 14 – Adyar Basin, Chennai", "polygon": " ".join(f"{la},{lo}" for lo, la in polygon_ward14())},
             }],

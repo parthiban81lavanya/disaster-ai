@@ -1,4 +1,4 @@
-"""DisasterShield AI – FastAPI backend (Ward 14, Adyar Basin).
+"""alertNow – FastAPI backend (Ward 14, Adyar Basin).
 
 Serverless-ready: working data lives in Upstash Redis (app/store.py); live updates are polled from an event log instead of WebSockets.
 Without Redis credentials it falls back to an in-process store, so `uvicorn app.main:app` still runs with zero setup.
@@ -170,7 +170,7 @@ store.seed_hook = _seed_hook
 auth.RL = store.RateLimiter()
 
 
-app = FastAPI(title="DisasterShield AI", version="1.2",
+app = FastAPI(title="alertNow", version="1.2",
               docs_url=None if auth.AUTH_ON else "/docs", redoc_url=None, openapi_url=None if auth.AUTH_ON else "/openapi.json")
 CTRL = auth.require(auth.CONTROL)
 OFFR = auth.require(auth.OFFICER)   # officers, and control room
@@ -594,7 +594,7 @@ def healthz():
 
 @app.get("/api/v1/config")
 def public_config():
-    return dict(auth_required=auth.AUTH_ON, security_key_required=auth.AUTH_ON and auth.REQUIRE_2FA, app="DisasterShield AI", version="1.3", storage="redis" if isinstance(store.redis(), store.RestRedis) else "memory")
+    return dict(auth_required=auth.AUTH_ON, security_key_required=auth.AUTH_ON and auth.REQUIRE_2FA, app="alertNow", version="1.3", storage="redis" if isinstance(store.redis(), store.RestRedis) else "memory")
 
 
 @app.post("/api/v1/auth/login")

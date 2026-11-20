@@ -1,4 +1,4 @@
-# Deploying DisasterShield AI
+# Deploying alertNow
 
 | Option | Use it for | Sign-in | Data kept in |
 |---|---|---|---|
@@ -68,7 +68,7 @@ Open http://localhost:8000/. No Redis needed (it uses an in-process store). To r
    ```
 3. **Put the project on GitHub** (a private repository is fine). Run this inside `Proj_SIH`, and make sure `backend/users.json` is not included (`.gitignore` already excludes it):
    ```powershell
-   git init; git add .; git commit -m "DisasterShield AI"
+   git init; git add .; git commit -m "alertNow"
    ```
    Then create an empty repository on github.com and push to it as GitHub shows you.
 4. **Import it in Vercel:** vercel.com, Add New, Project, pick the repository. Leave **Framework Preset = Other** and the build settings empty. Deploy. (The API will answer 503 until step 5 is done.)

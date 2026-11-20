@@ -1,4 +1,4 @@
-/* DisasterShield AI – Control Room dashboard (vanilla JS, no build step) */
+/* alertNow – Control Room dashboard (vanilla JS, no build step) */
 const API = "/api/v1";
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
